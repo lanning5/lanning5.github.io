@@ -4,6 +4,64 @@
   
     
     <entry>
+      <title>halcon封装C#</title>
+      <link href="/2020/08/23/halcon%E5%B0%81%E8%A3%85C/"/>
+      <url>/2020/08/23/halcon%E5%B0%81%E8%A3%85C/</url>
+      
+        <content type="html"><![CDATA[<h1 id="halcon封装"><a href="#halcon封装" class="headerlink" title="halcon封装"></a>halcon封装</h1><h3 id="halcon导出"><a href="#halcon导出" class="headerlink" title="halcon导出"></a>halcon导出</h3><p>首先，在halcon里选择 <strong>文件 –&gt; 导出</strong> ， 在导出菜单中选择C#，窗口导出选择<strong>使用导出模板</strong>。点击导出后会<strong>获得cs后缀名的文件</strong>。</p><p>建议：最好把halcon的代码先封装成函数，这样在导出为C#的类中也存在相应的函数(例如把读取图片，处理图片等步骤封装成一个个函数)</p><h3 id="C-项目使用halcon导出的文件"><a href="#C-项目使用halcon导出的文件" class="headerlink" title="C#项目使用halcon导出的文件"></a>C#项目使用halcon导出的文件</h3><p>在Visual Studio 中新建<strong>C#的windows 窗体应用</strong>，在引用中<strong>添加引用halcondotnet.dll</strong>（halcondotnet.dll在halcon安装目录的bin-&gt;dotnet35目录下），在<strong>工具-&gt;选择工具箱项</strong>，在.NET Framework组件中点击浏览，选择halcondotnet.dll，这时可看见已添加<strong>HsmarkWindowControl和HWindowControl</strong>（这是图片的显示控件），然后在项目添加现有项，选择halcon导出的cs文件。</p><p>这时，便可在Form1.cs[设计] 中点击工具箱，添加<strong>HsmarkWindowControl或HWindowControl</strong>到窗口，并添加button来控制图片的显示和处理。</p><p><strong>Form1.cs</strong>中先引用halcon</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">using HalconDotNet;</span><br></pre></td></tr></table></figure><h3 id="Form1-cs中使用halcon导出的类"><a href="#Form1-cs中使用halcon导出的类" class="headerlink" title="Form1.cs中使用halcon导出的类"></a><strong>Form1.cs</strong>中使用halcon导出的类</h3><p>先在Form1的类中定义halcon导出的类</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">HDevelopExport hd &#x3D; new HDevelopExport();</span><br><span class="line">HWindow hwindow; &#x2F;&#x2F; 窗口</span><br></pre></td></tr></table></figure><p>在Form1的创建函数(public Form1)中</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hwindow &#x3D; hSmartWindowControl1.HalconWindow;</span><br><span class="line">hd.InitHalcon();</span><br></pre></td></tr></table></figure><p>然后button的点击函数中使用hancon类的处理函数</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hd.RunHalcon(hwindow);</span><br></pre></td></tr></table></figure><p>这时，最简单的halcon导出便完成了。</p><h1 id="图片的缩放功能"><a href="#图片的缩放功能" class="headerlink" title="图片的缩放功能"></a>图片的缩放功能</h1><p>在Form1的类中先创建my_MouseWheel函数</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">private void my_MouseWheel(object sender, MouseEventArgs e)</span><br><span class="line"> &#123;</span><br><span class="line">     System.Drawing.Point pt &#x3D; this.Location;</span><br><span class="line">     int leftBorder &#x3D; hSmartWindowControl1.Location.X;</span><br><span class="line">     int rightBorder &#x3D; hSmartWindowControl1.Location.X + hSmartWindowControl1.Size.Width;</span><br><span class="line">     int topBorder &#x3D; hSmartWindowControl1.Location.Y;</span><br><span class="line">     int bottomBorder &#x3D; hSmartWindowControl1.Location.Y + hSmartWindowControl1.Size.Height;</span><br><span class="line">    &#x2F;&#x2F;先判断鼠标位置在hSmartWindowControl窗口里</span><br><span class="line">     if(e.X &gt; leftBorder &amp;&amp; e.X&lt;rightBorder &amp;&amp; e.Y&gt; topBorder &amp;&amp; e.Y&lt;bottomBorder)</span><br><span class="line">     &#123;</span><br><span class="line">         MouseEventArgs newe &#x3D; new MouseEventArgs(e.Button, e.Clicks,</span><br><span class="line">                                              e.X - pt.X, e.Y - pt.Y, e.Delta);</span><br><span class="line">         hSmartWindowControl1.HSmartWindowControl_MouseWheel(sender, newe);</span><br><span class="line">     &#125;           </span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure><p>在Form1的创建函数(public Form1)中监听</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">this.MouseWheel +&#x3D; new System.Windows.Forms.MouseEventHandler(this.my_MouseWheel);</span><br></pre></td></tr></table></figure><h1 id="读取任意图片-打开资源管理器选择"><a href="#读取任意图片-打开资源管理器选择" class="headerlink" title="读取任意图片(打开资源管理器选择)"></a>读取任意图片(打开资源管理器选择)</h1><p>打开资源管理器选择图片获取图片的地址</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">OpenFileDialog ofd &#x3D; new OpenFileDialog();</span><br><span class="line">if (ofd.ShowDialog() !&#x3D; DialogResult.OK)</span><br><span class="line">              return;</span><br><span class="line">string fileName &#x3D; ofd.FileName;</span><br></pre></td></tr></table></figure><p>图片显示</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HObject ho_image &#x3D; new HObject();</span><br><span class="line">HOperatorSet.ReadImage(out ho_image, fileName);</span><br><span class="line">HTuple hv_width, hv_height;</span><br><span class="line">HOperatorSet.GetImageSize(ho_image, out hv_width, out hv_height);</span><br><span class="line"></span><br><span class="line">HOperatorSet.DispObj(ho_image, hwindow);</span><br></pre></td></tr></table></figure><p>或</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public void readImage (out HObject ho_Image, HTuple hv_address)</span><br><span class="line">  &#123;</span><br><span class="line">    HTuple hv_Width &#x3D; new HTuple(), hv_Height &#x3D; new HTuple();</span><br><span class="line">    HTuple hv_WindowID &#x3D; new HTuple();</span><br><span class="line">    HOperatorSet.GenEmptyObj(out ho_Image);</span><br><span class="line">    ho_Image.Dispose();</span><br><span class="line">    HOperatorSet.ReadImage(out ho_Image, hv_address);</span><br><span class="line">    hv_Width.Dispose();hv_Height.Dispose();</span><br><span class="line">    HOperatorSet.GetImageSize(ho_Image, out hv_Width, out hv_Height);</span><br><span class="line">    using (HDevDisposeHelper dh &#x3D; new HDevDisposeHelper())</span><br><span class="line">    &#123;</span><br><span class="line">    hv_WindowID.Dispose();</span><br><span class="line">    dev_open_window_fit_image(ho_Image, 0, 0, hv_Width&#x2F;10, hv_Height&#x2F;10, out hv_WindowID);</span><br><span class="line">    &#125;</span><br><span class="line">    HOperatorSet.DispObj(ho_Image, hv_ExpDefaultWinHandle);</span><br><span class="line">    hv_Width.Dispose();</span><br><span class="line">    hv_Height.Dispose();</span><br><span class="line">    hv_WindowID.Dispose();</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> 视觉 </category>
+          
+          <category> halcon </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> halcon </tag>
+            
+            <tag> 视觉 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>halcon仿射变化</title>
+      <link href="/2020/08/11/halcon%E4%BB%BF%E5%B0%84%E5%8F%98%E5%8C%96/"/>
+      <url>/2020/08/11/halcon%E4%BB%BF%E5%B0%84%E5%8F%98%E5%8C%96/</url>
+      
+        <content type="html"><![CDATA[<h1 id="仿射变换"><a href="#仿射变换" class="headerlink" title="仿射变换"></a>仿射变换</h1><h2 id="算子："><a href="#算子：" class="headerlink" title="算子："></a>算子：</h2><h3 id="orientation-region"><a href="#orientation-region" class="headerlink" title="orientation_region"></a>orientation_region</h3><p>​    求区域的角度（配合 <strong>area_center</strong> 使用）</p><h3 id="vector-angle-to-rigid"><a href="#vector-angle-to-rigid" class="headerlink" title="vector_angle_to_rigid"></a>vector_angle_to_rigid</h3><p>​    <strong>求取仿射变换的矩阵</strong>（只能旋转和平移）</p><h3 id="affine-trans-image"><a href="#affine-trans-image" class="headerlink" title="affine_trans_image"></a>affine_trans_image</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vector_angle_to_rigid</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> 视觉 </category>
+          
+          <category> halcon </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> halcon </tag>
+            
+            <tag> 视觉 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Halcon：基本例程算子</title>
       <link href="/2020/08/05/Halcon%EF%BC%9A%E5%9F%BA%E6%9C%AC%E4%BE%8B%E7%A8%8B%E7%AE%97%E5%AD%90/"/>
       <url>/2020/08/05/Halcon%EF%BC%9A%E5%9F%BA%E6%9C%AC%E4%BE%8B%E7%A8%8B%E7%AE%97%E5%AD%90/</url>
